@@ -4,19 +4,21 @@ rm(list = ls())
 
 library(GGIR)
 
-g.shell.GGIR(  ## everything not specified in shelll function will execute as default
-  mode=c(1,2,3,4,5),
-  datadir="McKenzie_data",
-  outputdir="McKenzie_results",
+g.shell.GGIR(  ## everything not specified in shell function will execute as default
+  mode=c(1,2,3,4,5),                 ## which parts of GGIR to run 
+  datadir="McKenzie_data",           ## specify where you stored the data
+  outputdir="McKenzie_results",      ## specify where the results should go
   do.report=c(2,4,5),
   #=====================
   # Part 2
   #=====================
-  #strategy around what data to select for imputation
-  strategy = 1, 
-  hrs.del.start = 0,          hrs.del.end = 0,
-  
-  # for testing purposes, just use 29 days. It does not seem to work for more!
+  #strategy relates to study protocol (start and end). As we don't know when 
+  #exactly the participants started wearing, use strategy = 3 which will select 
+  #the x most active days (x specified in ndayswindow)
+  strategy = 3, 
+  #hrs.del.start = 0,          hrs.del.end = 0,
+  ndayswindow = 29,
+  # max number of days set to 29; 30 does not work? 
   maxdur = 29,                 includedaycrit = 16,
   qwindow=c(0,24),
   mvpathreshold =c(100),
