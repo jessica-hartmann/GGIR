@@ -48,14 +48,14 @@ g.dotorcomma = function(inputfile,dformat,mon, desiredtz = "", ...) {
         cat("\nWarning: R package GENEAread has not been installed, please install it before continuing")
       }
       try(expr={deci = GENEAread::read.bin(binfile=inputfile,start=1,end=3,mmap.load=FALSE,calibrate=TRUE)},silent=TRUE)
-      # on.exit(closeAllConnections())
       if(is.na(as.numeric(deci$data.out[2,2])) == T & getOption("OutDec") == ".") decn = ","
     }
   } else if (dformat == 3) {
     try(expr={deci = g.wavread(wavfile=inputfile,start=1,end=10)},silent=TRUE)
     if(is.na(suppressWarnings(as.numeric(deci$rawxyz[2,2]))) == T & getOption("OutDec") == ".") decn = ","
   } else if (dformat == 4) {
-    try(expr={deci = g.cwaread(inputfile,start = 1, end = 10, desiredtz = desiredtz)$data},silent=TRUE)
+    try(expr={deci = g.cwaread(fileName = inputfile,start = 1, end = 10, desiredtz = desiredtz,
+                               interpolationType=1)$data},silent=TRUE)
     if(is.na(suppressWarnings(as.numeric(deci[2,2]))) == T & getOption("OutDec") == ".") decn = ","
   }
   dotorcomma = decn
