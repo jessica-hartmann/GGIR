@@ -1,4 +1,4 @@
-###Mainscript for analysis of McKenzie GENEActiv data
+###Mainscript for analysis of McKenzie GENEActiv Accelerometry data
 
 rm(list = ls())
 
