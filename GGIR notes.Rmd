@@ -1,0 +1,35 @@
+---
+title: "R Notebook GGIR"
+output: html_notebook
+---
+
+## GGIR notes 
+- R package to process multi-day raw accelerometry data 
+- **raw** = data are expressed in m/s2 (*gravitational* acceleration)  
+- works with .bin, .csv, .wav, .cwa (GeneActiv, ActiGraph, Axivity, Genea watches)
+
+### GGIR shell function 
+Comes with one central parent function called `g.shell.GGIR`. You mainly interact with that wrapper. There are 5 functions:   
+- **Part 1**: Loads the data and stores derived features/aggregations. Time consuming.  
+- **Part 2**: Data quality analyses and low level description of signal features.  
+- **Part 3**: Estimation of sustained inactivity and sleep periods, prerequisite for part 4  
+- **Part 4**: Labels the inactivity periods detected in part 3 as sleep, or daytime sustained inactivity  
+- **Part 5**: Derives sleep and physically activity characteristics by drawing in information dried from part 2-4. Total time in intensity categories, number of bouts, time spent in bouts, overall activity (average acceleration) is calculated 
+
+The functions are called g.part1,g.part2 etc. **To see the functions, go to A_DATA SCIENCE/GGIR/R/g.part1.R. **
+
+#### Data Prep 
+- all data in one folder  
+- one file per participant
+- participant id in file name  
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
