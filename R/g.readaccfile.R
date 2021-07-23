@@ -1,6 +1,6 @@
 g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),filequality,
                          decn,dayborder,ws, desiredtz = "", PreviousEndPage = 1,inspectfileobject=c(),
-                         configtz=c(), ...) {
+                         configtz=c(), interpolationType=1, ...) {
   #get input variables (relevant when read.myacc.csv is used
   input = list(...)
   if (length(input) > 0) {
@@ -146,7 +146,6 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
         try(expr= {
           P = GENEAread::read.bin(binfile=filename,start=tint[blocknumber,1],
                                   end=tint[blocknumber,2],calibrate=TRUE,do.temp=TRUE,mmap.load=FALSE)
-          # on.exit(closeAllConnections())
           if (sf != P$freq) sf = P$freq
         },silent=TRUE)
         if (length(P) <= 2) {
@@ -166,8 +165,9 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
       if (length(P) == 0) { #if first block doens't read then probably corrupt
         if (blocknumber == 1) {
           #try to read without specifying blocks (file too short)
-          try(expr={P = GENEAread::read.bin(binfile=filename,start=1,end=10,calibrate=TRUE,do.temp=TRUE,mmap.load=FALSE)},silent=TRUE)
-          # on.exit(closeAllConnections())
+          try(expr={P = GENEAread::read.bin(binfile=filename,start=1,end=10,
+                                            calibrate=TRUE,do.temp=TRUE,
+                                            mmap.load=FALSE)},silent=TRUE)
           if (length(P) == 0) {
             warning('\nFile possibly corrupt\n')
             P= c(); switchoffLD = 1
@@ -196,12 +196,14 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
       startpage = UPI$startpage;    endpage = UPI$endpage
       try(expr={P = GENEAread::read.bin(binfile=filename,start=startpage,
                                         end=endpage,calibrate=TRUE,do.temp=TRUE,mmap.load=FALSE)},silent=TRUE)
-      # on.exit(closeAllConnections())
       if (length(P) <= 2) {
         #try again but now with mmap.load turned on
-        try(expr={P = GENEAread::read.bin(binfile=filename,start=startpage,
-                                          end=endpage,calibrate=TRUE,do.temp=TRUE,mmap.load=TRUE)},silent=TRUE)
-        # on.exit(closeAllConnections())
+        options(warn=-1) # to ignore warnings relating to failed mmap.load attempt
+        try(expr={
+          P = GENEAread::read.bin(binfile=filename,start=startpage,
+                                          end=endpage,calibrate=TRUE,do.temp=TRUE,mmap.load=TRUE)
+        },silent=TRUE)
+        options(warn=0) # to ignore GENEAread warnings
         if (length(P) != 0) {
           if (sf != P$freq) sf = P$freq
         } else {
@@ -218,8 +220,9 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
       if (length(P) == 0) { #if first block doens't read then probably corrupt
         if (blocknumber == 1) {
           #try to read without specifying blocks (file too short)
-          try(expr={P = GENEAread::read.bin(binfile=filename,calibrate=TRUE,do.temp=TRUE,mmap.load=FALSE)},silent=TRUE)
-          # on.exit(closeAllConnections())
+          try(expr={
+            P = GENEAread::read.bin(binfile=filename,calibrate=TRUE, do.temp=TRUE, mmap.load=FALSE)
+            },silent=TRUE)
           if (length(P) == 0) {
             warning('\nFile possibly corrupt\n')
             P= c(); switchoffLD = 1
@@ -301,7 +304,7 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
     startpage = UPI$startpage;    endpage = UPI$endpage
     try(expr={P = g.cwaread(fileName=filename, start = startpage, # try to read block first time
                             end = endpage, progressBar = FALSE, desiredtz = desiredtz,
-                            configtz = configtz)},silent=TRUE)
+                            configtz = configtz, interpolationType=interpolationType)},silent=TRUE)
     if (length(P) > 1) { # data reading succesful
       if (length(P$data) == 0) { # too short?
         P = c() ; switchoffLD = 1
@@ -320,7 +323,7 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
       # try to read the last page of the block, because if it exists then there might be something wrong with the first page(s).
       try(expr={PtestLastPage = g.cwaread(fileName=filename, start = endpage, #note this is intentionally endpage
                                           end = endpage, progressBar = FALSE, desiredtz = desiredtz,
-                                          configtz = configtz)},silent=TRUE)
+                                          configtz = configtz, interpolationType=interpolationType)},silent=TRUE)
       if (length(PtestLastPage) > 1) { # Last page exist, so there must be something wrong with the first page
         NFilePagesSkipped = 0
         while (length(PtestStartPage) == 0) { # Try loading the first page of the block by iteratively skipping a page
@@ -328,7 +331,7 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
           startpage = startpage + NFilePagesSkipped
           try(expr={PtestStartPage = g.cwaread(fileName=filename, start = startpage , # note: end is intentionally startpage
                                                end = startpage, progressBar = FALSE, desiredtz = desiredtz,
-                                               configtz = configtz)},silent=TRUE)
+                                               configtz = configtz, interpolationType=interpolationType)},silent=TRUE)
           if (NFilePagesSkipped == 10 & length(PtestStartPage) == 0) PtestStartPage = FALSE # stop after 10 attempts
         }
         cat(paste0("\nWarning (4): ",NFilePagesSkipped," page(s) skipped in cwa file in order to read data-block, this may indicate data corruption."))
@@ -338,7 +341,7 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
         # read the entire block:
         try(expr={P = g.cwaread(fileName=filename, start = startpage,
                                 end = endpage, progressBar = FALSE, desiredtz = desiredtz,
-                                configtz = configtz)},silent=TRUE)
+                                configtz = configtz, interpolationType=interpolationType)},silent=TRUE)
         if (length(P) > 1) { # data reading succesful
           if (length(P$data) == 0) { # if this still does not work then
             P = c() ; switchoffLD = 1
@@ -404,7 +407,7 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
       # at the moment the function is designed for reading the r3 acceleration channels only,
       # because that is the situation of the use-case we had.
       rawLast = nrow(rawAccel)
-      accelRes = resample(rawAccel, rawTime, timeRes, rawLast) # this is now the resampled acceleration data
+      accelRes = resample(rawAccel, rawTime, timeRes, rawLast, interpolationType) # this is now the resampled acceleration data
       P = cbind(timeRes,accelRes)
     } else {
       P = c()
@@ -458,7 +461,7 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
                                  rmc.header.structure = rmc.header.structure,
                                  rmc.check4timegaps = rmc.check4timegaps,
                                  rmc.col.wear=rmc.col.wear,
-                                 rmc.doresample=rmc.doresample)
+                                 rmc.doresample=rmc.doresample, interpolationType = interpolationType)
     },silent=TRUE)
     if (length(sf) == 0) sf = rmc.sf
     if (length(P) == 2) {
@@ -470,9 +473,6 @@ g.readaccfile = function(filename,blocksize,blocknumber,selectdaysfile=c(),fileq
     } else {
       P = c()
     }
-  }
-  if ("gzfile" %in% showConnections(all = T)[,1] == TRUE) {
-    closeAllConnections()
   }
   invisible(list(P=P,filequality=filequality, switchoffLD = switchoffLD, endpage = endpage,  startpage = startpage))
 }
